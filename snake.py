@@ -85,6 +85,15 @@ def drawGrid(surface):
                 pygame.draw.rect(surface, config.colors.grid2, rr)
                 print(x,y)
 
+def lights(is_illuminated, position, colour='FFFFFF'):
+    x = int(position[0] / gridsize)
+    y = int(position[1] / gridsize)
+    if is_illuminated:
+        print('TURN_ON: %s,%s @ %s' % (x, y, colour))
+    else:
+        print('TURN_OFF: %s,%s' % (x, y))
+
+
 screen_width = 360
 screen_height = 120
 
@@ -97,13 +106,6 @@ down = (0,1)
 left = (-1,0)
 right = (1,0)
 
-def lights(is_illuminated, position, colour='FFFFFF'):
-    x = int(position[0] / gridsize)
-    y = int(position[1] / gridsize)
-    if is_illuminated:
-        print('TURN_ON: %s,%s @ %s' % (x, y, colour))
-    else:
-        print('TURN_OFF: %s,%s' % (x, y))
 
 def main():
     pygame.init()
