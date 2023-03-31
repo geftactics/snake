@@ -139,7 +139,7 @@ while not game_over:
 
 
     # Framerate
-    clock.tick(5)
+    clock.tick(config.misc.speed)
 
 
 # Fin

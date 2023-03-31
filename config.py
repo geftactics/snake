@@ -14,3 +14,6 @@ class colour:
     food = (255, 0, 0)
     background = (0, 0, 100)
     score = (255, 255, 255)
+
+class misc:
+    speed = 10               # Game play speed... 1=slow, 10=fast
