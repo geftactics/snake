@@ -1,182 +1,159 @@
-import config
 import pygame
 import random
-import sys
-import time
-import uuid
+from stupidArtnet import StupidArtnet
 
-class Snake():
-    def __init__(self):
-        self.length = 1
-        self.positions = [((screen_width/2), (screen_height/2))]
-        self.direction = random.choice([up, down, left, right])
-        self.score = 0
-        self.alive = True
 
-    def get_head_position(self):
-        return self.positions[0]
+# ArtNet connection
+target_ip = '2.0.0.1'
+universe = 0
+packet_size = 300 # it is not necessary to send whole universe
+artnet = StupidArtnet(target_ip, universe, packet_size, 30, True, False)
+print(artnet)
 
-    def turn(self, point):
-        if self.length > 1 and (point[0]*-1, point[1]*-1) == self.direction:
-            return
-        else:
-            self.direction = point
 
-    def move(self):
-        cur = self.get_head_position()
-        x,y = self.direction
-        new = (((cur[0]+(x*gridsize))%screen_width), (cur[1]+(y*gridsize))%screen_height)
-        cur_y = int(cur[0]/gridsize)
-        cur_x = int(cur[1]/gridsize)
-        if len(self.positions) > 2 and new in self.positions[2:]:
-            self.reset()
-        else:
-            self.positions.insert(0,new)
-            lights(new, config.colors.snake)
-            if len(self.positions) > self.length:
-                old = self.positions.pop()
-                if (cur_x+cur_y)%2 == 0:
-                    lights(old, config.colors.grid1)
-                else:
-                    lights(old, config.colors.grid2)
+# Colours
+SNAKE_COLOUR = (0, 255, 0)
+FOOD_COLOUR = (255, 0, 0)
+BACKGROUND_COLOUR = (0, 0, 100)
+SCORE_COLOUR = (255, 255, 255)
 
-    def reset(self):
-        self.length = 1
-        self.positions = [((screen_width/2), (screen_height/2))]
-        self.direction = random.choice([up, down, left, right])
-        self.score = 0
-        self.alive = False
-        print('DIED')
 
-    def draw(self,surface):
-        for p in self.positions:
-            r = pygame.Rect((p[0], p[1]), (gridsize,gridsize))
-            pygame.draw.rect(surface, config.colors.snake, r)
-            pygame.draw.rect(surface, config.colors.grid1, r, 1)
+# Grid config
+GRID_WIDTH = 600
+GRID_HEIGHT = 600
+BLOCK_SIZE = 50
 
-    def handle_keys(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
-                    self.turn(up)
-                elif event.key == pygame.K_DOWN:
-                    self.turn(down)
-                elif event.key == pygame.K_LEFT:
-                    self.turn(left)
-                elif event.key == pygame.K_RIGHT:
-                    self.turn(right)
 
-class Food():
-    def __init__(self):
-        self.position = (0,0)
-        self.randomize_position()
+# Initialize Pygame
+pygame.init()
+font = pygame.font.Font(None, 36)
+pygame.display.set_caption('Window Vipers')
+screen = pygame.display.set_mode([GRID_WIDTH, GRID_HEIGHT])
+clock = pygame.time.Clock()
 
-    def randomize_position(self):
-        time.sleep(0.2)
-        self.position = (random.randint(0, grid_width-1)*gridsize, random.randint(0, grid_height-1)*gridsize)
-        lights(self.position, config.colors.food)
 
-    def draw(self, surface):
-        r = pygame.Rect((self.position[0], self.position[1]), (gridsize, gridsize))
-        pygame.draw.rect(surface, config.colors.food, r)
-        pygame.draw.rect(surface, config.colors.grid1, r, 1)
-        lights((self.position[0], self.position[1]), config.colors.food)
+# Constants
+UP = 0
+DOWN = 1
+LEFT = 2
+RIGHT = 3
 
-def drawGrid(surface, setup=False):
-    for y in range(0, int(grid_height)):
-        for x in range(0, int(grid_width)):
-            game_x = x*20
-            game_y = y*20
-            if (x+y)%2 == 0:
-                r = pygame.Rect((x*gridsize, y*gridsize), (gridsize,gridsize))
-                pygame.draw.rect(surface, config.colors.grid1, r)
-                if setup:
-                   lights((game_x, game_y), config.colors.grid1)
-            else:
-                rr = pygame.Rect((x*gridsize, y*gridsize), (gridsize,gridsize))
-                pygame.draw.rect(surface, config.colors.grid2, rr)
-                if setup:
-                    lights((game_x, game_y), config.colors.grid2)
 
-def lights(position, colour):
-    x = int(position[0] / gridsize)
-    y = int(position[1] / gridsize)
-    print('TURN_ON: %s,%s @ %s' % (x, y, colour))
-    with open('mock-lights/' + str(uuid.uuid4()) + '.dat', 'w') as f:
-        f.write(str(x) + ',' + str(y) + ',' + str(colour[0]) + ',' + str(colour[1]) + ',' + str(colour[2]))
+# Define initial states
+direction = RIGHT
+snake_pos = [(GRID_WIDTH / 2, GRID_HEIGHT / 2)]
+game_over = False
+score = 0
+
+
+def draw_snake(snake_pos):
+    for pos in snake_pos:
+        pygame.draw.rect(screen, SNAKE_COLOUR, [pos[0], pos[1], BLOCK_SIZE, BLOCK_SIZE])
+
+
+def move_snake(snake_pos, direction):
+    x = snake_pos[0][0]
+    y = snake_pos[0][1]
+
+    if direction == UP:
+        y -= BLOCK_SIZE
+    elif direction == DOWN:
+        y += BLOCK_SIZE
+    elif direction == LEFT:
+        x -= BLOCK_SIZE
+    elif direction == RIGHT:
+        x += BLOCK_SIZE
+
+    # Add head
+    snake_pos.insert(0, (x, y))
+    update_artnet((x, y), SNAKE_COLOUR)
+
+    # Remove tail
+    snake_pos.pop()
+    update_artnet(snake_pos[-1], BACKGROUND_COLOUR)
+
+    return snake_pos
+
+
+def check_collision(snake_pos):
+    if snake_pos[0][0] < 0 or snake_pos[0][0] >= GRID_WIDTH or snake_pos[0][1] < 0 or snake_pos[0][1] >= GRID_HEIGHT:
+        return True
+    for pos in snake_pos[1:]:
+        if snake_pos[0] == pos:
+            return True
+    return False
+
 
 def draw_score(score):
-    # TODO
-    lights((2*gridsize,1*gridsize), config.colors.score)
+    text = font.render("Score: " + str(score), True, SCORE_COLOUR)
+    screen.blit(text, [10, 10])
+    
 
-    lights((5*gridsize,1*gridsize), config.colors.score)
-    lights((6*gridsize,1*gridsize), config.colors.score)
-    lights((7*gridsize,1*gridsize), config.colors.score)
-    lights((8*gridsize,1*gridsize), config.colors.score)
-
-    lights((11*gridsize,1*gridsize), config.colors.score)
-    lights((12*gridsize,1*gridsize), config.colors.score)
-    lights((13*gridsize,1*gridsize), config.colors.score)
-    lights((14*gridsize,1*gridsize), config.colors.score)
-    lights((15*gridsize,1*gridsize), config.colors.score)
+def update_artnet(pos, color):
+    print(pos, color)
+    artnet.set_single_value(2, random.randint(0,255))
+    artnet.show()
 
 
-screen_width = 360
-screen_height = 120
-
-gridsize = 20
-grid_width = screen_width/gridsize
-grid_height = screen_height/gridsize
-
-up = (0,-1)
-down = (0,1)
-left = (-1,0)
-right = (1,0)
+def create_food():
+    while True:
+        food_pos = (random.randint(0, (GRID_WIDTH - BLOCK_SIZE) // BLOCK_SIZE) * BLOCK_SIZE, 
+                    random.randint(0, (GRID_HEIGHT - BLOCK_SIZE) // BLOCK_SIZE) * BLOCK_SIZE)
+        if food_pos not in snake_pos:
+            update_artnet(food_pos, FOOD_COLOUR)
+            return food_pos
 
 
-def main():
-    pygame.init()
+# Define the initial position of the food
+food_pos = create_food()
 
-    clock = pygame.time.Clock()
-    screen = pygame.display.set_mode((screen_width, screen_height), 0, 32)
 
-    surface = pygame.Surface(screen.get_size())
-    surface = surface.convert()
-    drawGrid(surface, setup=True)
+# Game loop
+while not game_over:
 
-    snake = Snake()
-    food = Food()
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            game_over = True
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP and direction != DOWN:
+                direction = UP
+            elif event.key == pygame.K_DOWN and direction != UP:
+                direction = DOWN
+            elif event.key == pygame.K_LEFT:
+                direction = LEFT
+            elif event.key == pygame.K_RIGHT and direction != LEFT:
+                direction = RIGHT
 
-    myfont = pygame.font.SysFont("monospace",16)
 
-    while (True):
-        clock.tick(5)
-        snake.handle_keys()
-        drawGrid(surface)
-        snake.move()
-        if not snake.alive:
-            drawGrid(surface, setup=True)
-            print('GRID RESET')
-            pygame.time.wait(5 * 1000)
-            draw_score(108)
-            pygame.time.wait(10 * 1000)
-            drawGrid(surface, setup=True)
-            pygame.time.wait(2 * 1000)
-            food.randomize_position()
-            snake.alive = True
-        if snake.get_head_position() == food.position:
-            lights(food.position, config.colors.snake)
-            snake.length += 1
-            snake.score += 1
-            food.randomize_position()
-        snake.draw(surface)
-        food.draw(surface)
-        screen.blit(surface, (0,0))
-        text = myfont.render("Score {0}".format(snake.score), 1, (0,0,0))
-        screen.blit(text, (5,10))
-        pygame.display.update()
+    # Move the snake
+    snake_pos = move_snake(snake_pos, direction)
+    print('.')
 
-main()
+
+    # Check for collisions
+    if check_collision(snake_pos):
+        game_over = True
+
+
+    # Check if the snake has eaten the food
+    if snake_pos[0] == food_pos:
+        snake_pos.append(snake_pos[-1])
+        food_pos = create_food()
+        score += 10
+
+
+    # Draw the snake/food/score
+    screen.fill(BACKGROUND_COLOUR)
+    draw_snake(snake_pos)
+    pygame.draw.rect(screen, FOOD_COLOUR, [food_pos[0], food_pos[1], BLOCK_SIZE, BLOCK_SIZE])
+    draw_score(score)
+    pygame.display.update()
+
+
+    # Framerate
+    clock.tick(5)
+
+
+# Fin
+artnet.blackout()
+pygame.quit()
