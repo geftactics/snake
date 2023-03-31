@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import config
 import pygame
 import random
@@ -72,8 +74,13 @@ def draw_score(score):
     
 
 def update_artnet(pos, color):
-    print(pos, color)
+    channel = int(((pos[0] // config.grid.block_size) * 3) + 1)
+    universe = int(pos[1] // config.grid.block_size)
+    print('Universe: %s, Channel: %s, Colour: %s' % (universe, channel, color))
     artnet.set_single_value(2, random.randint(0,255))
+    # Untested, but should be the answer
+    # artnet.set_universe(universe)
+    # artnet.set_rgb(channel, color[0], color[1], color[2])
     artnet.show()
 
 
@@ -108,7 +115,7 @@ while not game_over:
 
     # Move the snake
     snake_pos = move_snake(snake_pos, direction)
-    print('.')
+    print(' ')
 
 
     # Check for collisions
