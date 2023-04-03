@@ -107,7 +107,7 @@ while not game_over:
                 direction = UP
             elif event.key == pygame.K_DOWN and direction != UP:
                 direction = DOWN
-            elif event.key == pygame.K_LEFT:
+            elif event.key == pygame.K_LEFT and direction != RIGHT:
                 direction = LEFT
             elif event.key == pygame.K_RIGHT and direction != LEFT:
                 direction = RIGHT
