@@ -8,11 +8,11 @@ from stupidArtnet import StupidArtnet
 
 # Init Pygame & Art-Net
 pygame.init()
-font = pygame.font.Font(None, 36)
 pygame.display.set_caption('Window Vipers')
-screen = pygame.display.set_mode([config.grid.width, config.grid.height])
+font = pygame.font.Font(None, 36)
+screen = pygame.display.set_mode([config.grid.WIDTH, config.grid.HEIGHT])
 clock = pygame.time.Clock()
-artnet = StupidArtnet(config.artnet.target, config.artnet.universe, config.artnet.packet_size, 30, True, config.artnet.broadcast)
+artnet = StupidArtnet(config.artnet.TARGET, config.artnet.UNIVERSE, config.artnet.PACKET_SIZE, 30, True, config.artnet.BROADCAST)
 print(artnet)
 
 
@@ -27,12 +27,12 @@ RIGHT = 3
 score = 0
 game_over = False
 direction = RIGHT
-snake_pos = [(config.grid.width / 2, config.grid.height / 2)]
+snake_pos = [(config.grid.WIDTH / 2, config.grid.HEIGHT / 2)]
 
 
 def draw_snake(snake_pos):
     for pos in snake_pos:
-        pygame.draw.rect(screen, config.colour.snake, [pos[0], pos[1], config.grid.block_size, config.grid.block_size])
+        pygame.draw.rect(screen, config.colour.SNAKE, [pos[0], pos[1], config.grid.BLOCK_SIZE, config.grid.BLOCK_SIZE])
 
 
 def move_snake(snake_pos, direction):
@@ -40,27 +40,27 @@ def move_snake(snake_pos, direction):
     y = snake_pos[0][1]
 
     if direction == UP:
-        y -= config.grid.block_size
+        y -= config.grid.BLOCK_SIZE
     elif direction == DOWN:
-        y += config.grid.block_size
+        y += config.grid.BLOCK_SIZE
     elif direction == LEFT:
-        x -= config.grid.block_size
+        x -= config.grid.BLOCK_SIZE
     elif direction == RIGHT:
-        x += config.grid.block_size
+        x += config.grid.BLOCK_SIZE
 
     # Add head
     snake_pos.insert(0, (x, y))
-    update_artnet((x, y), config.colour.snake)
+    update_artnet((x, y), config.colour.SNAKE)
 
     # Remove tail
     snake_pos.pop()
-    update_artnet(snake_pos[-1], config.colour.background)
+    update_artnet(snake_pos[-1], config.colour.BACKGROUND)
 
     return snake_pos
 
 
 def check_collision(snake_pos):
-    if snake_pos[0][0] < 0 or snake_pos[0][0] >= config.grid.width or snake_pos[0][1] < 0 or snake_pos[0][1] >= config.grid.height:
+    if snake_pos[0][0] < 0 or snake_pos[0][0] >= config.grid.WIDTH or snake_pos[0][1] < 0 or snake_pos[0][1] >= config.grid.HEIGHT:
         return True
     for pos in snake_pos[1:]:
         if snake_pos[0] == pos:
@@ -69,13 +69,13 @@ def check_collision(snake_pos):
 
 
 def draw_score(score):
-    text = font.render("Score: " + str(score), True, config.colour.score)
+    text = font.render("Score: " + str(score), True, config.colour.SCORE)
     screen.blit(text, [10, 10])
     
 
 def update_artnet(pos, color):
-    channel = int(((pos[0] // config.grid.block_size) * 3) + 1)
-    universe = int(pos[1] // config.grid.block_size)
+    channel = int(((pos[0] // config.grid.BLOCK_SIZE) * 3) + 1)
+    universe = int(pos[1] // config.grid.BLOCK_SIZE)
     print('Universe: %s, Channel: %s, Colour: %s' % (universe, channel, color))
     artnet.set_single_value(2, random.randint(0,255))
     # Untested, but should be the answer
@@ -86,10 +86,10 @@ def update_artnet(pos, color):
 
 def create_food():
     while True:
-        food_pos = (random.randint(0, (config.grid.width - config.grid.block_size) // config.grid.block_size) * config.grid.block_size, 
-                    random.randint(0, (config.grid.height - config.grid.block_size) // config.grid.block_size) * config.grid.block_size)
+        food_pos = (random.randint(0, (config.grid.WIDTH - config.grid.BLOCK_SIZE) // config.grid.BLOCK_SIZE) * config.grid.BLOCK_SIZE, 
+                    random.randint(0, (config.grid.HEIGHT - config.grid.BLOCK_SIZE) // config.grid.BLOCK_SIZE) * config.grid.BLOCK_SIZE)
         if food_pos not in snake_pos:
-            update_artnet(food_pos, config.colour.food)
+            update_artnet(food_pos, config.colour.FOOD)
             return food_pos
 
 
@@ -131,15 +131,15 @@ while not game_over:
 
 
     # Draw the snake/food/score
-    screen.fill(config.colour.background)
+    screen.fill(config.colour.BACKGROUND)
     draw_snake(snake_pos)
-    pygame.draw.rect(screen, config.colour.food, [food_pos[0], food_pos[1], config.grid.block_size, config.grid.block_size])
+    pygame.draw.rect(screen, config.colour.FOOD, [food_pos[0], food_pos[1], config.grid.BLOCK_SIZE, config.grid.BLOCK_SIZE])
     draw_score(score)
     pygame.display.update()
 
 
     # Framerate
-    clock.tick(config.misc.speed)
+    clock.tick(config.misc.SPEED)
 
 
 # Fin
