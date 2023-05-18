@@ -1,7 +1,7 @@
 class grid:
     BLOCK_SIZE = 50         # Number of pixels per block, for when viewing game locally
-    WIDTH = 600            # Number of building windows wide, multiplied by block_size
-    HEIGHT = 600           # Number of building windows high, multiplied by block_size
+    WIDTH = 13              # Number of building windows wide
+    HEIGHT = 6              # Number of building windows high
 
 class artnet:
     TARGET = '2.0.0.1'      # Specify the IP of Art-Net node (TODO: Do we auto configure the last octet based on building floor?)

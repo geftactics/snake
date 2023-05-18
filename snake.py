@@ -6,33 +6,39 @@ import random
 from stupidArtnet import StupidArtnet
 
 
-# Init Pygame & Art-Net
-pygame.init()
-pygame.display.set_caption('Window Vipers')
-font = pygame.font.Font(None, 36)
-screen = pygame.display.set_mode([config.grid.WIDTH, config.grid.HEIGHT])
-clock = pygame.time.Clock()
-artnet = StupidArtnet(config.artnet.TARGET, config.artnet.UNIVERSE, config.artnet.PACKET_SIZE, 30, True, config.artnet.BROADCAST)
-print(artnet)
-
-
 # Constants
 UP = 0
 DOWN = 1
 LEFT = 2
 RIGHT = 3
+BLOCK_SIZE = config.grid.BLOCK_SIZE
+GRID_WIDTH = config.grid.WIDTH * BLOCK_SIZE
+GRID_HEIGHT = config.grid.HEIGHT * BLOCK_SIZE
+
+
+# Init Pygame & Art-Net
+pygame.init()
+pygame.display.set_caption('Window Vipers')
+font = pygame.font.Font(None, 36)
+screen = pygame.display.set_mode([GRID_WIDTH, GRID_HEIGHT])
+clock = pygame.time.Clock()
+artnet = StupidArtnet(config.artnet.TARGET, config.artnet.UNIVERSE, config.artnet.PACKET_SIZE, 30, True, config.artnet.BROADCAST)
+print(artnet)
 
 
 # Initial states
 score = 0
 game_over = False
 direction = RIGHT
-snake_pos = [(config.grid.WIDTH / 2, config.grid.HEIGHT / 2)]
+snake_pos = [
+    (round(GRID_WIDTH / 2 / BLOCK_SIZE) * BLOCK_SIZE, 
+     round(GRID_HEIGHT / 2 / BLOCK_SIZE) * BLOCK_SIZE)
+]
 
 
 def draw_snake(snake_pos):
     for pos in snake_pos:
-        pygame.draw.rect(screen, config.colour.SNAKE, [pos[0], pos[1], config.grid.BLOCK_SIZE, config.grid.BLOCK_SIZE])
+        pygame.draw.rect(screen, config.colour.SNAKE, [pos[0], pos[1], BLOCK_SIZE, BLOCK_SIZE])
 
 
 def move_snake(snake_pos, direction):
@@ -40,13 +46,13 @@ def move_snake(snake_pos, direction):
     y = snake_pos[0][1]
 
     if direction == UP:
-        y -= config.grid.BLOCK_SIZE
+        y -= BLOCK_SIZE
     elif direction == DOWN:
-        y += config.grid.BLOCK_SIZE
+        y += BLOCK_SIZE
     elif direction == LEFT:
-        x -= config.grid.BLOCK_SIZE
+        x -= BLOCK_SIZE
     elif direction == RIGHT:
-        x += config.grid.BLOCK_SIZE
+        x += BLOCK_SIZE
 
     # Add head
     snake_pos.insert(0, (x, y))
@@ -60,7 +66,7 @@ def move_snake(snake_pos, direction):
 
 
 def check_collision(snake_pos):
-    if snake_pos[0][0] < 0 or snake_pos[0][0] >= config.grid.WIDTH or snake_pos[0][1] < 0 or snake_pos[0][1] >= config.grid.HEIGHT:
+    if snake_pos[0][0] < 0 or snake_pos[0][0] >= GRID_WIDTH or snake_pos[0][1] < 0 or snake_pos[0][1] >= GRID_HEIGHT:
         return True
     for pos in snake_pos[1:]:
         if snake_pos[0] == pos:
@@ -74,9 +80,9 @@ def draw_score(score):
     
 
 def update_artnet(pos, color):
-    channel = int(((pos[0] // config.grid.BLOCK_SIZE) * 3) + 1)
-    universe = int(pos[1] // config.grid.BLOCK_SIZE)
-    print('Universe: %s, Channel: %s, Colour: %s' % (universe, channel, color))
+    channel = int(((pos[0] // BLOCK_SIZE) * 3) + 1)
+    universe = int(pos[1] // BLOCK_SIZE)
+    #print('Universe: %s, Channel: %s, Colour: %s' % (universe, channel, color))
     artnet.set_single_value(2, random.randint(0,255))
     # Untested, but should be the answer
     # artnet.set_universe(universe)
@@ -86,8 +92,8 @@ def update_artnet(pos, color):
 
 def create_food():
     while True:
-        food_pos = (random.randint(0, (config.grid.WIDTH - config.grid.BLOCK_SIZE) // config.grid.BLOCK_SIZE) * config.grid.BLOCK_SIZE, 
-                    random.randint(0, (config.grid.HEIGHT - config.grid.BLOCK_SIZE) // config.grid.BLOCK_SIZE) * config.grid.BLOCK_SIZE)
+        food_pos = (random.randint(0, (GRID_WIDTH - BLOCK_SIZE) // BLOCK_SIZE) * BLOCK_SIZE,
+                    random.randint(0, (GRID_HEIGHT - BLOCK_SIZE) // BLOCK_SIZE) * BLOCK_SIZE)
         if food_pos not in snake_pos:
             update_artnet(food_pos, config.colour.FOOD)
             return food_pos
@@ -133,7 +139,7 @@ while not game_over:
     # Draw the snake/food/score
     screen.fill(config.colour.BACKGROUND)
     draw_snake(snake_pos)
-    pygame.draw.rect(screen, config.colour.FOOD, [food_pos[0], food_pos[1], config.grid.BLOCK_SIZE, config.grid.BLOCK_SIZE])
+    pygame.draw.rect(screen, config.colour.FOOD, [food_pos[0], food_pos[1], BLOCK_SIZE, BLOCK_SIZE])
     draw_score(score)
     pygame.display.update()
 
