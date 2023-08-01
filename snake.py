@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
 import config
+import hid
 import pygame
 import random
+import time
+import threading
 from stupidArtnet import StupidArtnet
 
 
@@ -15,6 +18,21 @@ clock = pygame.time.Clock()
 artnet = StupidArtnet(config.artnet.TARGET, config.artnet.UNIVERSE_BASE, config.artnet.PACKET_SIZE, 30, True, config.artnet.BROADCAST)
 print(artnet)
 artnet.blackout()
+
+
+# NES Gamepad
+try:
+    gamepad = hid.device()
+    gamepad.open(0x0810, 0xe501)
+    gamepad.set_nonblocking(True)
+    key_map = {
+        (1, 128, 128, 127,   0, 15,  0, 0): pygame.K_UP,
+        (1, 128, 128, 127, 255, 15,  0, 0): pygame.K_DOWN,
+        (1, 128, 128, 0,   127, 15,  0, 0): pygame.K_LEFT,
+        (1, 128, 128, 255, 127, 15,  0, 0): pygame.K_RIGHT
+    }
+except Exception as e:
+    gamepad = None
 
 
 # Constants
@@ -90,6 +108,14 @@ def update_artnet(pos, color):
         artnet.show()
 
 
+def read_gamepad_input():
+    while not game_over:
+        input = tuple(gamepad.read(64))
+        if input != () and input != (1, 128, 128, 127, 127, 15, 0, 0):
+            pygame.event.post(pygame.event.Event(pygame.KEYDOWN, {"key": key_map.get(input, input)}))
+        time.sleep(0.005)  
+
+
 def create_food():
     while True:
         food_pos = (random.randint(0, (config.grid.WIDTH - config.grid.BLOCK_SIZE) // config.grid.BLOCK_SIZE) * config.grid.BLOCK_SIZE, 
@@ -100,6 +126,12 @@ def create_food():
 
 
 food_pos = create_food()
+
+
+# Start the gamepad input thread
+if gamepad is not None:
+    input_thread = threading.Thread(target=read_gamepad_input)
+    input_thread.start()
 
 
 # Game loop
