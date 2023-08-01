@@ -12,8 +12,9 @@ pygame.display.set_caption('Window Vipers')
 font = pygame.font.Font(None, 36)
 screen = pygame.display.set_mode([config.grid.WIDTH, config.grid.HEIGHT])
 clock = pygame.time.Clock()
-artnet = StupidArtnet(config.artnet.TARGET, config.artnet.UNIVERSE, config.artnet.PACKET_SIZE, 30, True, config.artnet.BROADCAST)
+artnet = StupidArtnet(config.artnet.TARGET, config.artnet.UNIVERSE_BASE, config.artnet.PACKET_SIZE, 30, True, config.artnet.BROADCAST)
 print(artnet)
+artnet.blackout()
 
 
 # Constants
@@ -27,7 +28,7 @@ RIGHT = 3
 score = 0
 game_over = False
 direction = RIGHT
-snake_pos = [(config.grid.WIDTH / 2, config.grid.HEIGHT / 2)]
+snake_pos = [(config.grid.BLOCK_SIZE * 2, config.grid.BLOCK_SIZE * 2)]
 
 
 def draw_snake(snake_pos):
@@ -74,14 +75,19 @@ def draw_score(score):
     
 
 def update_artnet(pos, color):
-    channel = int(((pos[0] // config.grid.BLOCK_SIZE) * 3) + 1)
-    universe = int(pos[1] // config.grid.BLOCK_SIZE)
-    print('Universe: %s, Channel: %s, Colour: %s' % (universe, channel, color))
-    artnet.set_single_value(2, random.randint(0,255))
-    # Untested, but should be the answer
-    # artnet.set_universe(universe)
-    # artnet.set_rgb(channel, color[0], color[1], color[2])
-    artnet.show()
+    x = int(pos[0] // config.grid.BLOCK_SIZE) + 1
+    y = int(pos[1] // config.grid.BLOCK_SIZE) + 1
+    print('x: %s, y: %s' % (x, y))
+
+    channel_base = int(((pos[0] // config.grid.BLOCK_SIZE) * 24) + 1)
+    universe = config.artnet.UNIVERSE_BASE + int(pos[1] // config.grid.BLOCK_SIZE)
+    artnet.set_universe(universe)
+    
+    # LED fixture is 8 segments of 3 channels, so total 24 channels - Set all of these
+    for channel in range(channel_base, channel_base + 24, 3):
+        print('Universe: %s, Channel: %s, Colour: %s' % (universe, channel, color))
+        artnet.set_rgb(channel, color[0], color[1], color[2]) 
+        artnet.show()
 
 
 def create_food():
