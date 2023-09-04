@@ -16,4 +16,4 @@ class colour:
     SCORE = (255, 255, 255)
 
 class misc:
-    SPEED = 2               # Game play speed... 1=slow, 10=fast
+    SPEED = 1               # Game play speed... 1=slow, 10=fast
