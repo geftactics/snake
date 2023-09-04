@@ -4,6 +4,7 @@ class grid:
     HEIGHT = 500           # Number of building windows high, multiplied by block_size
 
 class artnet:
+    OSC = "2.0.0.100"               # IP of OSC host
     TARGET = '255.255.255.255'      # Specify the IP of Art-Net node
     BROADCAST = True                # We can send Art-Net data via network broadcast (i.e. target is 255.255.255.255)
     UNIVERSE_BASE = 21              # Specify our Art-Net universe base, each floor is +1 added to this
