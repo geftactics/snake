@@ -63,6 +63,7 @@ def draw_snake(snake_pos, snake_pos_previous):
     for pos in snake_pos:
         pygame.draw.rect(screen, config.colour.SNAKE, [pos[0], pos[1], config.grid.BLOCK_SIZE, config.grid.BLOCK_SIZE])
         update_artnet(pos, config.colour.SNAKE)
+        time.sleep(0.05)
 
 
 def move_snake(snake_pos, direction):
@@ -120,7 +121,7 @@ def read_gamepad_input():
         input = tuple(gamepad.read(64))
         if input != () and input != (1, 128, 128, 127, 127, 15, 0, 0):
             pygame.event.post(pygame.event.Event(pygame.KEYDOWN, {"key": key_map.get(input, input)}))
-        time.sleep(0.005)  
+        time.sleep(0.001)  
 
 
 def create_food():
@@ -132,7 +133,7 @@ def create_food():
             return food_pos
     
 
-food_pos = create_food()
+
 
 # Start the gamepad input thread
 if gamepad is not None:
@@ -152,8 +153,10 @@ while True:
             print('FIRE A')
         elif event.key == pygame.K_b:
             print('FIRE B')
-osc.send_message("/cues/selected/cues/by_cell/col_28/row_1", 1)
-time.sleep(2)
+osc.send_message("/fixtures/All/visible", 0)
+time.sleep(3)
+
+food_pos = create_food()
 
 # Game loop
 while not game_over:
@@ -202,9 +205,11 @@ while not game_over:
 
 
 # Fin
-time.sleep(3)
+time.sleep(1)
 print('Game over! Score', score)
-osc.send_message("/cues/selected/cues/by_cell/col_28/row_1", 1)
-time.sleep(2)
-osc.send_message("/cues/selected/cues/by_cell/col_3/row_1", 50)
+osc.send_message("/medias/number_" + str(score) + ".png/assign_to_all_surfaces", 1)
+osc.send_message("/fixtures/All/visible", 1)
+time.sleep(10)
+print('OSC animation trigger')
+osc.send_message("/cues/selected/cues/by_cell/col_2/row_1", 50)
 pygame.quit()

@@ -8,7 +8,7 @@ class artnet:
     TARGET = '255.255.255.255'      # Specify the IP of Art-Net node
     BROADCAST = True                # We can send Art-Net data via network broadcast (i.e. target is 255.255.255.255)
     UNIVERSE_BASE = 21              # Specify our Art-Net universe base, each floor is +1 added to this
-    PACKET_SIZE = 512               # We can be more efficient by sending minimum data - Number of lights per floor (universe) * 3 (RGB channels)
+    PACKET_SIZE = 1024               # We can be more efficient by sending minimum data - Number of lights per floor (universe) * 3 (RGB channels)
 
 class colour:
     SNAKE = (0, 255, 0)
@@ -17,4 +17,4 @@ class colour:
     SCORE = (255, 255, 255)
 
 class misc:
-    SPEED = 1               # Game play speed... 1=slow, 10=fast
+    SPEED = 1.5               # Game play speed... 1=slow, 10=fast
