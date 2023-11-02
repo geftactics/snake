@@ -63,7 +63,7 @@ def draw_snake(snake_pos, snake_pos_previous):
     for pos in snake_pos:
         pygame.draw.rect(screen, config.colour.SNAKE, [pos[0], pos[1], config.grid.BLOCK_SIZE, config.grid.BLOCK_SIZE])
         update_artnet(pos, config.colour.SNAKE)
-        time.sleep(0.05)
+        time.sleep(0.01)
 
 
 def move_snake(snake_pos, direction):

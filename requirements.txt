@@ -1,3 +1,4 @@
+hidapi
 pygame
 python-osc
 stupidArtnet
