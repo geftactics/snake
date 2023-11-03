@@ -121,7 +121,7 @@ def read_gamepad_input():
         input = tuple(gamepad.read(64))
         if input != () and input != (1, 128, 128, 127, 127, 15, 0, 0):
             pygame.event.post(pygame.event.Event(pygame.KEYDOWN, {"key": key_map.get(input, input)}))
-        time.sleep(0.001)  
+        time.sleep(0.001)
 
 
 def create_food():
@@ -131,7 +131,6 @@ def create_food():
         if food_pos not in snake_pos:
             update_artnet(food_pos, config.colour.FOOD)
             return food_pos
-    
 
 
 
