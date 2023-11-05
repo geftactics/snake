@@ -226,7 +226,7 @@ while not game_exit:
 
     
     # Waiting area before game starts
-    logging.info('Game ready - Press [Space], [Start] or [q]')
+    logging.info('-------------- Press [Space], [Start] or [q] --------------')
     pygame.event.clear()
     while True:
         event = pygame.event.wait()
@@ -244,6 +244,7 @@ while not game_exit:
     if game_exit:
         break
 
+    logging.info('Game start')
     osc.send_message("/fixtures/All/visible", 0)
     time.sleep(3) # do we need this long for OSC?
 
