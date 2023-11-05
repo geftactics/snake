@@ -16,6 +16,12 @@ That's right, on a tower block! A DMX lighting fixture is placed in each window 
  - Lots of DMX (XLR) cabling!
 
 
+## Control
+
+ - Via arrow keys on keyboard
+ - NES USB/HID gamepad (may need to adjust USB vendor/device IDs)
+ - Via TCP (i.e. Run snake.py elsewhere, and use controller_send.py to just send up/down/left/right controller commands)
+
 
 ## Usage
 

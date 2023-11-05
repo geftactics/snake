@@ -1,21 +1,23 @@
 import hid
+import logging
 import time
 import socket
+
+server_address = ('2.0.0.101', 1234)
+
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 def connect_to_server(server_address):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         client_socket.connect(server_address)
-        print("Connected to the server.")
+        logging.info("Connected to the server.")
         return client_socket
     except socket.error as e:
-        print(f"Error connecting to the server: {str(e)}")
+        logging.error(f"Error connecting to the server: {str(e)}")
         return None
-    
-server_address = ('127.0.0.1', 1234)  # Replace with the actual server address and port
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-# Init NES Gamepad
 try:
     gamepad = hid.device()
     gamepad.open(0x0810, 0xe501)
@@ -34,26 +36,19 @@ except Exception as e:
     gamepad = None
 
 
-
-
-
 while True:
-    # Attempt to connect to the server
     client_socket = connect_to_server(server_address)
 
     if client_socket:
         while True:
             command = ""
-            # Get a command from the user
             input = tuple(gamepad.read(64))
             if input != () and input != (1, 128, 128, 127, 127, 15, 0, 0):
-                print(key_map.get(input, input))
                 command = key_map.get(input, input)
-            
-            # Send the command to the server
-            client_socket.send(command.encode("utf-8"))
+                if isinstance(command, str):
+                    logging.info('Send command: ' + command)
+                    client_socket.send(command.encode("utf-8"))
 
     else:
-        # Wait for a few seconds before attempting to reconnect
-        print("Reconnecting in 5 seconds...")
-        time.sleep(5)
+        logging.warning("Reconnecting to server...")
+        time.sleep(2)
