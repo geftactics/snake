@@ -34,6 +34,8 @@ try:
     }
 except Exception as e:
     gamepad = None
+    logging.error('Gamepad not connected!!')
+    exit()
 
 
 while True:
